@@ -1,0 +1,11 @@
+# dsh-delete-plugin bundle patch: mount the host half, which performs the
+# actual session removal. The browser half — the session-row Delete action and
+# the consent dialog — is mounted by the `dsh.client` entry in package.json,
+# not from here.
+#
+# `name` MUST be the published package name, because the loader imports this
+# exact specifier. `id` is this row's storage/effect key: once released, do not
+# rename it, or saved user state is orphaned.
+- insert:
+    - id: session-delete
+      name: 'dsh-delete-plugin'

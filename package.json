@@ -1,0 +1,68 @@
+{
+  "name": "dsh-delete-plugin",
+  "version": "0.1.0",
+  "description": "Sidebar session deletion and workspace pinning for DeepSeek Harness: a Delete action behind a consent dialog permanently removes a session's log, workspace accounting and live state (refusing running turns), and Pin keeps workspaces on top; no network calls or telemetry of its own, deletion only on confirmation, uninstall removes both actions.",
+  "icon": "assets/icon.png",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./client": "./src/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/index.js",
+    "src/client.js",
+    "cordis.patch.yml",
+    "scripts/test-harness.mjs",
+    "assets/icon.png",
+    "locale",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node scripts/test-harness.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-api-remotes"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-typert-protocol": ">=0.1.0-rc.6",
+    "@deepseek-ai/dsh-storage-domain": ">=0.1.0",
+    "zod": ">=3.23"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "dsh",
+    "deepseek-harness",
+    "session",
+    "delete",
+    "sidebar",
+    "workspace",
+    "pin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adithyanraj03/dsh-delete-plugin.git"
+  },
+  "homepage": "https://adithyanraj03.github.io/dsh-delete-plugin/",
+  "bugs": {
+    "url": "https://github.com/adithyanraj03/dsh-delete-plugin/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Delete & Pin",
+    "description": "Delete sessions from the sidebar behind a consent dialog, and pin workspaces to the top."
+  }
+}
