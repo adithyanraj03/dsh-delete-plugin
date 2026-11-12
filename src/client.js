@@ -52,7 +52,8 @@ window.__ModuleLoader__.load({
         descriptor("deleteSession", ["sessionId", "platform"]),
         descriptor("getPinnedWorkspaces", []),
         descriptor("pinWorkspace", ["workspaceId"]),
-        descriptor("unpinWorkspace", ["workspaceId"])
+        descriptor("unpinWorkspace", ["workspaceId"]),
+        descriptor("setPinnedWorkspaceOrder", ["ids"])
       ]
     };
 
@@ -324,6 +325,27 @@ window.__ModuleLoader__.load({
         }
       }
 
+      // When the user drags pinned workspaces among themselves, dsh's built-in
+      // drag reorders the host registry. Adopt that new relative order into the
+      // pin set (and persist it) instead of snapping back to pin-recency order.
+      // Only a contiguous pinned block at the front counts as a deliberate
+      // reorder; anything else is left for enforceOrder to re-front.
+      function reconcilePinnedOrder() {
+        if (reordering) return;
+        const hostOrder = ctx.workspaces.list.getSnapshot().items.map((w) => w.workspaceId);
+        const pinnedSet = new Set(pinSnapshot);
+        const pinnedInHost = hostOrder.filter((id) => pinnedSet.has(id));
+        if (pinSnapshot.length === 0 || pinnedInHost.length !== pinSnapshot.length) return;
+        const contiguousAtFront = hostOrder.slice(0, pinnedInHost.length).every((id) => pinnedSet.has(id));
+        if (!contiguousAtFront) return;
+        if (pinnedInHost.every((id, i) => id === pinSnapshot[i])) return;
+        setPinned(pinnedInHost);
+        const remote = remoteService();
+        if (remote && typeof remote.setPinnedWorkspaceOrder === "function") {
+          remote.setPinnedWorkspaceOrder(pinnedInHost).catch(() => {});
+        }
+      }
+
       /* ------------------------------------------------------------ *
        * Pin badge on pinned workspace headers (additive DOM augmentation)
        * ------------------------------------------------------------ */
@@ -408,7 +430,7 @@ window.__ModuleLoader__.load({
       /* ------------------------------------------------------------ *
        * Boot: load the pin set, surface pinned workspaces, paint badges
        * ------------------------------------------------------------ */
-      const unsubscribeWorkspaces = ctx.workspaces.list.subscribe(() => { enforceOrder(); schedulePaint(); });
+      const unsubscribeWorkspaces = ctx.workspaces.list.subscribe(() => { reconcilePinnedOrder(); enforceOrder(); schedulePaint(); });
       ctx.effect(() => unsubscribeWorkspaces, "dsh-delete-plugin: workspace order subscription");
 
       try {
@@ -420,6 +442,7 @@ window.__ModuleLoader__.load({
       } catch (error) {
         console.warn("[dsh-delete] loading pinned workspaces failed:", error);
       }
+      reconcilePinnedOrder();
       enforceOrder();
       paintBadges();
 

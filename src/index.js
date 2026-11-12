@@ -359,6 +359,20 @@ class SessionDeleteRemote extends TypertRemoteService {
     }
     return success({ pinnedWorkspaceIds: [...this.state.pinnedWorkspaceIds] })
   }
+
+  async setPinnedWorkspaceOrder(ids) {
+    if (!Array.isArray(ids)) return rejected('bad-request', 'setPinnedWorkspaceOrder requires an array of workspace ids')
+    await ensureStorage(this.ctx, this.state)
+    const current = this.state.pinnedWorkspaceIds
+    const pinnedSet = new Set(current)
+    // Honor the caller's order for known pins, then append any pinned ids the
+    // caller omitted, so a reorder can never drop a pin.
+    const ordered = ids.filter((id) => typeof id === 'string' && pinnedSet.has(id))
+    for (const id of current) if (!ordered.includes(id)) ordered.push(id)
+    this.state.pinnedWorkspaceIds = ordered
+    await persistPins(this.ctx, this.state)
+    return success({ pinnedWorkspaceIds: [...ordered] })
+  }
 }
 
 /** Emulate the @Remote decorator without decorator syntax. */
@@ -372,7 +386,7 @@ function markRemoteMethod(prototype, method) {
     addInitializer(fn) { fn.call(Object.create(prototype)) },
   })
 }
-for (const method of ['deleteSession', 'getPinnedWorkspaces', 'pinWorkspace', 'unpinWorkspace']) {
+for (const method of ['deleteSession', 'getPinnedWorkspaces', 'pinWorkspace', 'unpinWorkspace', 'setPinnedWorkspaceOrder']) {
   markRemoteMethod(SessionDeleteRemote.prototype, method)
 }
 

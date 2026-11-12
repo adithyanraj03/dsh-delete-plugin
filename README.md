@@ -16,7 +16,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin tha
 It does two things:
 
 - **Delete session** — a danger item on the session row menu opens a risk-consent dialog naming exactly what will be removed (the session log, its workspace accounting, and live runtime state). On confirmation the host tears down an idle live session, physically removes the session directory, and re-checks persistence so the chat is gone for good. A session with a **running turn is refused** — stop it first.
-- **Pin workspace** — a Pin/Unpin item on the workspace row menu. Pinned workspaces are surfaced ahead of the rest and wear a small pin badge; the pin set is durable and survives restarts. Unpinning returns the workspace to the unpinned group.
+- **Pin workspace** — a Pin/Unpin item on the workspace row menu. Pinned workspaces are surfaced ahead of the rest and wear a small pin badge; **drag pinned workspaces up or down to reorder them** and the order is saved. The pin set is durable and survives restarts. Unpinning returns the workspace to the unpinned group.
 
 ## Install
 
@@ -61,7 +61,7 @@ Right-click a session row (or open its **…** menu) → **Delete session**. The
 
 ### Pin workspace
 
-Right-click a workspace header (or open its **…** menu) → **Pin workspace**. The workspace moves to the top of the list and shows a pin badge; the menu item becomes **Unpin workspace**. Pins are stored in the plugin's own durable storage domain and are independent of dsh's session pins.
+Right-click a workspace header (or open its **…** menu) → **Pin workspace**. The workspace moves to the top of the list and shows a pin badge; the menu item becomes **Unpin workspace**. Drag pinned workspaces up or down to reorder them — that order is persisted (it no longer snaps back to the order you pinned them in). Pins are stored in the plugin's own durable storage domain and are independent of dsh's session pins.
 
 ## Disclosure
 
