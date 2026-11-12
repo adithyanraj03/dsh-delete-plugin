@@ -265,18 +265,33 @@ window.__ModuleLoader__.load({
       /* ------------------------------------------------------------ *
        * Workspace pin: toggle + self-healing pinned-first order
        * ------------------------------------------------------------ */
+      // The api-gateway wraps the host's {ok,value} envelope in its own
+      // RemoteResult, so the host envelope sits at answered.value and its
+      // payload at answered.value.value. Normalize both layers here.
+      function unwrap(answered) {
+        if (!answered || answered.ok === false) {
+          return { ok: false, error: (answered && answered.error) || { message: "Remote call failed." } };
+        }
+        const env = answered.value;
+        if (!env || env.ok === false) {
+          return { ok: false, error: (env && env.error) || { message: "Action failed." } };
+        }
+        return { ok: true, value: env.value };
+      }
       async function togglePin(workspaceId) {
         const remote = remoteService();
         if (!remote) { await alertDialog(L.pinFailed); return; }
         const pinned = isPinned(workspaceId);
+        let r;
         try {
           const answered = pinned ? await remote.unpinWorkspace(workspaceId) : await remote.pinWorkspace(workspaceId);
-          if (answered && answered.ok === false) { await alertDialog((answered.error && answered.error.message) || L.pinFailed); return; }
-          if (answered && answered.value) setPinned(answered.value.pinnedWorkspaceIds || []);
+          r = unwrap(answered);
         } catch (error) {
           await alertDialog(error && error.message ? error.message : String(error));
           return;
         }
+        if (!r.ok) { await alertDialog((r.error && r.error.message) || L.pinFailed); return; }
+        setPinned((r.value && r.value.pinnedWorkspaceIds) || []);
         enforceOrder();
         paintBadges();
       }
@@ -313,9 +328,11 @@ window.__ModuleLoader__.load({
        * Pin badge on pinned workspace headers (additive DOM augmentation)
        * ------------------------------------------------------------ */
       const PIN_BADGE_ATTR = "data-dsh-delete-pin-badge";
+      // The exact Fluent pin_24_filled glyph dsh uses for the session pin
+      // (IconPinFillRegular), so the workspace badge matches it.
       const PIN_SVG =
-        '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
-        '<path d="M14 3l7 7-3 1-3 3-1 5-2-2-4 4-1-1 4-4-2-2 5-1 3-3z"/></svg>';
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+        '<path d="M21.0682 7.75765L16.2425 2.93189C14.9152 1.60462 12.6777 1.96772 11.8382 3.6466L9.40281 8.51748C9.31512 8.69287 9.16223 8.82694 8.97688 8.89096L4.81061 10.3302C3.93791 10.6317 3.682 11.7427 4.33487 12.3956L7.43936 15.5001L3.00008 19.9394L3 21.0001H4.06074L8.50002 16.5607L11.6045 19.6653C12.2574 20.3181 13.3684 20.0622 13.6699 19.1895L15.1092 15.0232C15.1732 14.8379 15.3073 14.685 15.4826 14.5973L20.3535 12.1619C22.0324 11.3224 22.3955 9.08491 21.0682 7.75765Z"/></svg>';
       function paintBadges() {
         let rows;
         try { rows = document.querySelectorAll('[data-row-key^="workspace:"]'); } catch (error) { return; }
@@ -328,10 +345,12 @@ window.__ModuleLoader__.load({
             if (!existing) {
               const badge = document.createElement("span");
               badge.setAttribute(PIN_BADGE_ATTR, "1");
-              badge.style.cssText = "display:inline-flex;align-items:center;margin-left:6px;color:var(--dsw-alias-interactive-accent,#3b82f6);flex:none;";
+              badge.style.cssText = "display:inline-flex;align-items:center;flex:none;color:var(--dsw-alias-label-secondary,#9aa3b2);";
               badge.innerHTML = PIN_SVG;
-              const text = row.querySelector('[class*="projectText"]') || row;
-              text.appendChild(badge);
+              // projectText is a flex column and rowActions is hidden until hover,
+              // so attach the badge to the row itself (a flex row): it sits inline
+              // at the right and stays visible, like the built-in session pin.
+              row.appendChild(badge);
             }
           } else if (existing) {
             existing.remove();
@@ -395,8 +414,8 @@ window.__ModuleLoader__.load({
       try {
         const remote = remoteService();
         if (remote && typeof remote.getPinnedWorkspaces === "function") {
-          const answered = await remote.getPinnedWorkspaces();
-          if (answered && answered.ok !== false && answered.value) setPinned(answered.value.pinnedWorkspaceIds || []);
+          const r = unwrap(await remote.getPinnedWorkspaces());
+          if (r.ok) setPinned((r.value && r.value.pinnedWorkspaceIds) || []);
         }
       } catch (error) {
         console.warn("[dsh-delete] loading pinned workspaces failed:", error);
