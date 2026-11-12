@@ -25,8 +25,10 @@ dsh's sanctioned services and only on your confirmation.
 ## Install
 
 ```sh
-dsh plugin --profile web add github:adithyanraj03/dsh-delete-plugin
+dsh plugin --profile web add dsh-delete-plugin
 ```
+
+Or straight from GitHub: `dsh plugin --profile web add github:adithyanraj03/dsh-delete-plugin`.
 
 [Repository](https://github.com/adithyanraj03/dsh-delete-plugin) ·
 [中文说明](https://github.com/adithyanraj03/dsh-delete-plugin/blob/main/README.zh-CN.md) ·

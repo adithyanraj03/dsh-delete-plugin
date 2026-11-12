@@ -20,11 +20,17 @@
 
 ## 安装
 
-直接从 GitHub 安装：
+从 npm 安装：
+
+```sh
+dsh plugin --profile web add dsh-delete-plugin
+dsh --profile web
+```
+
+或直接从 GitHub 安装：
 
 ```sh
 dsh plugin --profile web add github:adithyanraj03/dsh-delete-plugin
-dsh --profile web
 ```
 
 或使用发布 tarball（在 profile 目录中）：

@@ -20,11 +20,17 @@ It does two things:
 
 ## Install
 
-Straight from GitHub:
+From npm:
+
+```sh
+dsh plugin --profile web add dsh-delete-plugin
+dsh --profile web
+```
+
+Or straight from GitHub:
 
 ```sh
 dsh plugin --profile web add github:adithyanraj03/dsh-delete-plugin
-dsh --profile web
 ```
 
 Or from the release tarball (in the profile directory):
